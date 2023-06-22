@@ -6,18 +6,20 @@ export default function NoteViewer(){
     const [notes, setNotes] = useState<any[]>([]);
 
     const getNotes = () => {
-        const data = query(collection(db, 'notes'));
-        const notedocs:any[] = [];
+        const q = query(collection(db, 'notes'));
+        
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const notedocs:any[] = [];
 
-        onSnapshot(data, (querySnapshot) => {
             querySnapshot.forEach(doc => {
                 // console.log(doc.data(), doc.id);
                 notedocs.push({ ...doc.data(), id: doc.id })
             })
-        });
 
-        
-        setNotes(notedocs);
+            setNotes(notedocs);
+        })
+
+        return () => unsubscribe();
     }
 
     useEffect(()=> {
