@@ -1,6 +1,8 @@
-import React, { useEffect, useState} from "react";
+import { useEffect, useState} from "react";
 import { db } from '../firebase';
 import { addDoc, collection, setDoc, deleteDoc, doc, query, onSnapshot } from "firebase/firestore";
+import NoteForm from "./NoteForm";
+import Note from "./Note";
 
 export default function NoteViewer(){
     const [notes, setNotes] = useState<any[]>([]);
@@ -12,7 +14,6 @@ export default function NoteViewer(){
             const notedocs:any[] = [];
 
             querySnapshot.forEach(doc => {
-                // console.log(doc.data(), doc.id);
                 notedocs.push({ ...doc.data(), id: doc.id })
             })
 
@@ -22,14 +23,29 @@ export default function NoteViewer(){
         return () => unsubscribe();
     }
 
+    const deleteNote = async (id: any) => {
+        if(window.confirm("Are you sure")) await deleteDoc(doc(db, 'notes', id))
+       
+    }
+
     useEffect(()=> {
         getNotes()
     },[])
 
+    const addOrEdit = async (note: any) => {
+        try {
+            const ref = collection(db, 'notes');
+            await addDoc(ref, note);
+
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
     return (
         <>
-            <h1>Note Viewer 😎</h1>
-            {notes.map(n => <h1 key={n.id}>{n.title}</h1>)}
+            <NoteForm addOrEdit={addOrEdit} />
+            {notes.map(n => <Note key={n.id} note={n} deleteNote={deleteNote} />)} 
         </>
     )
 }
